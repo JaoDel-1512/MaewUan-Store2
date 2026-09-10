@@ -1,0 +1,1160 @@
+# Generate single-file HTML (index.html) with embedded CSS & JavaScript for Cloudflare Pages deployment.
+# Design: Purple / Pink pastel theme with Sidebar navigation as shown in reference image, responsive for Mobile/Tablet/PC.
+# Includes MaewUan Store branding, Admin account (itsuchan12@gmail.com / @maewuan1512), user role switching, Slip2Go credit topup integration logic, auto delivery system, and comprehensive admin dashboard.
+
+html_content = """<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaewUan Store - ร้านค้าจำหน่ายสินค้าดิจิทัลอัตโนมัติ</title>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #fdf8ff;
+            --bg-surface: #ffffff;
+            --purple-main: #8b5cf6;
+            --purple-dark: #6d28d9;
+            --purple-light: #f3e8ff;
+            --pink-accent: #f472b6;
+            --pink-light: #fce7f3;
+            --text-dark: #331832;
+            --text-muted: #7c687f;
+            --border-color: #f0dcf5;
+            --shadow-soft: 0 10px 25px -5px rgba(139, 92, 246, 0.08), 0 8px 10px -6px rgba(139, 92, 246, 0.04);
+            --radius-main: 20px;
+            --radius-btn: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Prompt', 'Mitr', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* --- SIDEBAR DESIGN (Matching reference UI) --- */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-surface);
+            border-right: 1.5px solid var(--border-color);
+            padding: 28px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 35px;
+            padding-left: 8px;
+        }
+
+        .brand-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--purple-main), var(--pink-accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(244, 114, 182, 0.3);
+        }
+
+        .brand-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--purple-dark), var(--pink-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 18px;
+            border-radius: var(--radius-btn);
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+
+        .nav-item i {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--purple-light);
+            color: var(--purple-dark);
+        }
+
+        .nav-item.active {
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
+        }
+
+        .nav-item.admin-link {
+            color: #d946ef;
+            background: #fae8ff;
+            margin-top: 15px;
+        }
+
+        .nav-item.admin-link:hover {
+            background: #f5d0fe;
+        }
+
+        /* User Profile Box Sidebar Bottom */
+        .user-card-sidebar {
+            background: linear-gradient(135deg, #f3e8ff 0%, #fce7f3 100%);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .user-info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .user-credit-badge {
+            background: var(--bg-surface);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            color: var(--purple-dark);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+
+        /* --- MAIN CONTENT LAYOUT --- */
+        .main-wrapper {
+            margin-left: 260px;
+            flex: 1;
+            padding: 35px 40px;
+            max-width: 1400px;
+            transition: all 0.3s ease;
+        }
+
+        /* Top Bar Announcement / Banner (Matching Reference) */
+        .announcement-banner {
+            background: linear-gradient(90deg, #fdf4ff, #fae8ff);
+            border: 1px solid #f5d0fe;
+            border-radius: 50px;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--purple-dark);
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(217, 70, 239, 0.05);
+        }
+
+        .page-header {
+            margin-bottom: 25px;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-title span.flower-icon {
+            color: var(--pink-accent);
+        }
+
+        /* Product Horizontal Scroll / Grid (Matching Reference) */
+        .product-scroll-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 24px;
+        }
+
+        .product-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-main);
+            border: 1px solid var(--border-color);
+            padding: 18px;
+            box-shadow: var(--shadow-soft);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px -5px rgba(139, 92, 246, 0.15);
+            border-color: #d8b4fe;
+        }
+
+        .product-img-box {
+            width: 100%;
+            height: 180px;
+            border-radius: 14px;
+            background: #fdf2f8;
+            overflow: hidden;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .product-img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .badge-stock {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(4px);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--purple-dark);
+        }
+
+        .product-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-dark);
+        }
+
+        .product-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .product-price-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+        }
+
+        .price-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--pink-accent);
+        }
+
+        /* Buttons Styling */
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius-btn);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .btn-pink {
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            color: white;
+            box-shadow: 0 4px 12px rgba(244, 114, 182, 0.3);
+        }
+
+        .btn-pink:hover {
+            opacity: 0.95;
+            transform: scale(1.02);
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-purple:hover {
+            opacity: 0.95;
+            transform: scale(1.02);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid var(--purple-main);
+            color: var(--purple-dark);
+        }
+
+        .btn-outline:hover {
+            background: var(--purple-light);
+        }
+
+        /* Bottom Contact/Banner Card (Matching Reference Image Pink Bottom Bar) */
+        .contact-bottom-banner {
+            background: linear-gradient(135deg, #f472b6, #fb7185);
+            border-radius: 20px;
+            padding: 22px 30px;
+            color: white;
+            margin-top: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 10px 25px rgba(244, 114, 182, 0.25);
+        }
+
+        .contact-bottom-banner .btn-contact {
+            background: white;
+            color: var(--pink-accent);
+            border-radius: 30px;
+            padding: 10px 24px;
+            font-weight: 600;
+        }
+
+        /* --- CARDS & PANELS --- */
+        .content-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-main);
+            border: 1px solid var(--border-color);
+            padding: 28px;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: var(--radius-btn);
+            border: 1.5px solid var(--border-color);
+            background: #faf5ff;
+            outline: none;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--purple-main);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+        }
+
+        /* Table Styling */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .custom-table th {
+            background: var(--purple-light);
+            color: var(--purple-dark);
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .custom-table th:first-child { border-radius: 10px 0 0 10px; }
+        .custom-table th:last-child { border-radius: 0 10px 10px 0; }
+
+        .custom-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .badge-role {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-admin { background: #fce7f3; color: #db2777; }
+        .badge-member { background: #e0e7ff; color: #4338ca; }
+
+        /* Admin Grid Layout */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        /* --- MOBILE NAVIGATION TRIGGER --- */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 20px;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 99;
+        }
+
+        .mobile-toggle-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: var(--purple-dark);
+            cursor: pointer;
+        }
+
+        /* --- MODAL DIALOGS --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(51, 24, 50, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: white;
+            width: 90%;
+            max-width: 440px;
+            border-radius: var(--radius-main);
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            transform: translateY(20px);
+            transition: all 0.25s ease;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .tab-switcher {
+            display: flex;
+            background: #f3e8ff;
+            border-radius: var(--radius-btn);
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-muted);
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--purple-dark);
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .hidden { display: none !important; }
+
+        /* --- RESPONSIVE DESIGN (PC, Tablet, Mobile) --- */
+        @media (max-width: 1024px) {
+            .admin-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .mobile-header { display: flex; }
+            .sidebar {
+                transform: translateX(-100%);
+                box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-wrapper {
+                margin-left: 0;
+                padding: 80px 18px 30px 18px;
+            }
+            .contact-bottom-banner {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Header Trigger -->
+    <div class="mobile-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="brand-avatar" style="width: 36px; height: 36px; font-size: 16px;">🐱</div>
+            <span class="brand-title" style="font-size: 1.1rem;">MaewUan Store</span>
+        </div>
+        <button class="mobile-toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+    </div>
+
+    <!-- SIDEBAR NAVIGATION (Matching UI image design) -->
+    <aside class="sidebar" id="sidebar">
+        <div>
+            <div class="brand-header">
+                <div class="brand-avatar"><i class="fa-solid fa-cat"></i></div>
+                <div>
+                    <div class="brand-title">MaewUan</div>
+                    <div class="brand-subtitle">Store & Digital Shop</div>
+                </div>
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-item active" onclick="switchTab('shop')">
+                    <i class="fa-solid fa-house"></i> Home / ร้านค้า
+                </li>
+                <li class="nav-item" onclick="switchTab('stock')">
+                    <i class="fa-solid fa-box-open"></i> Sign Stock
+                </li>
+                <li class="nav-item" onclick="switchTab('pricing')">
+                    <i class="fa-solid fa-tag"></i> Pricing / ราคา
+                </li>
+                <li class="nav-item" onclick="switchTab('topup')">
+                    <i class="fa-solid fa-wallet"></i> เติมเงิน (Slip2Go)
+                </li>
+                <li class="nav-item" onclick="switchTab('history')">
+                    <i class="fa-solid fa-receipt"></i> ประวัติสั่งซื้อ
+                </li>
+                <li class="nav-item admin-link hidden" id="adminSidebarBtn" onclick="switchTab('admin')">
+                    <i class="fa-solid fa-user-gear"></i> Admin Dashboard
+                </li>
+            </ul>
+        </div>
+
+        <!-- User Profile Card in Sidebar Bottom -->
+        <div class="user-card-sidebar" id="sidebarUserBox">
+            <div class="user-info-row">
+                <i class="fa-solid fa-circle-user" style="font-size: 2rem; color: var(--purple-main);"></i>
+                <div style="overflow: hidden;">
+                    <div id="displayUserEmail" style="font-weight: 600; font-size: 0.85rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">ยังไม่ได้เข้าสู่ระบบ</div>
+                    <div id="displayUserRole" style="font-size: 0.75rem; color: var(--text-muted);">Guest User</div>
+                </div>
+            </div>
+            <div class="user-credit-badge">
+                <span>เครดิตคงเหลือ:</span>
+                <span id="displayUserCredit">฿0.00</span>
+            </div>
+            <button class="btn btn-purple" style="width: 100%; margin-top: 10px;" id="authActionBtn" onclick="openAuthModal()">
+                <i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-wrapper">
+        <!-- Top Announcement Banner -->
+        <div class="announcement-banner">
+            <span style="font-size: 1.2rem;">🌸</span>
+            <span>เปิดให้บริการส่งสินค้าดิจิทัลอัตโนมัติ 24 ชม. ตรวจสอบสลิปผ่าน Slip2Go รวดเร็วแม่นยำ</span>
+        </div>
+
+        <!-- SECTION 1: SHOP / PRODUCT CATALOG -->
+        <section id="shopSection">
+            <div class="page-header">
+                <h1 class="page-title">ราคางาน / สินค้าดิจิทัล <span class="flower-icon">🌸</span></h1>
+                <p style="color: var(--text-muted); margin-top: 4px;">เลือกซื้อสินค้าและบริการดิจิทัล รับสินค้าได้ทันทีผ่านระบบส่งอัตโนมัติ</p>
+            </div>
+
+            <div class="product-scroll-container" id="productList">
+                <!-- Products dynamically generated by JS -->
+            </div>
+
+            <!-- Bottom Contact Pink Banner (Matching reference image) -->
+            <div class="contact-bottom-banner">
+                <div>
+                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">สอบถามราคานอกเหนือจากในนี้ได้เลยค่ะ</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.9;">ติดต่องานสั่งทำพิเศษ หรือสอบถามเพิ่มเติมได้ตลอดเวลา</p>
+                </div>
+                <button class="btn btn-contact" onclick="alert('ติดต่อเพจร้าน MaewUan Store หรือ Line OA')">
+                    <i class="fa-regular fa-envelope"></i> ติดต่อรับงาน
+                </button>
+            </div>
+        </section>
+
+        <!-- SECTION 2: TOPUP (SLIP2GO INTEGRATION) -->
+        <section id="topupSection" class="hidden">
+            <div class="page-header">
+                <h1 class="page-title">เติมเครดิตระบบ <span class="flower-icon">💳</span></h1>
+                <p style="color: var(--text-muted); margin-top: 4px;">เติมเครดิตผ่านสลิปธนาคาร ปลอดภัย ด้วยระบบ Slip2Go Verification API</p>
+            </div>
+
+            <div class="content-card" style="max-width: 550px; margin: 0 auto;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="width: 200px; height: 200px; background: #faf5ff; border: 2px dashed var(--purple-main); border-radius: 16px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--purple-dark);">
+                        <i class="fa-solid fa-qrcode" style="font-size: 5rem; margin-bottom: 8px;"></i>
+                        <span style="font-size: 0.85rem; font-weight: 500;">สแกน QR Code PromptPay</span>
+                    </div>
+                </div>
+
+                <form id="slipForm" onsubmit="handleSlipUpload(event)">
+                    <div class="form-group">
+                        <label>อัปโหลดสลิปการโอนเงิน ( slip2go API Check ):</label>
+                        <input type="file" id="slipFileInput" accept="image/*" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-pink" style="width: 100%; padding: 14px;">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> ตรวจสอบสลิปและเติมเงิน
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- SECTION 3: PURCHASE HISTORY -->
+        <section id="historySection" class="hidden">
+            <div class="page-header">
+                <h1 class="page-title">ประวัติการสั่งซื้อ <span class="flower-icon">📜</span></h1>
+                <p style="color: var(--text-muted); margin-top: 4px;">ตรวจสอบรายการสั่งซื้อสินค้าและรหัสสินค้าที่คุณได้รับ</p>
+            </div>
+
+            <div class="content-card">
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>ชื่อสินค้า</th>
+                                <th>ราคา</th>
+                                <th>ข้อมูลสินค้า/รหัสที่ได้รับ (Auto Delivery)</th>
+                                <th>วันที่สั่งซื้อ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align:center; color: var(--text-muted);">ไม่มีรายการสั่งซื้อ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: ADMIN DASHBOARD (Matching secretlabx reference panel) -->
+        <section id="adminSection" class="hidden">
+            <div class="page-header">
+                <h1 class="page-title"><i class="fa-solid fa-sliders" style="color:var(--purple-main);"></i> ระบบจัดการหลังบ้าน (Admin Dashboard)</h1>
+                <p style="color: var(--text-muted); margin-top: 4px;">จัดการผู้ใช้งาน, สิทธิ์แอดมิน, สต็อกสินค้า และระบบร้านค้า MaewUan Store</p>
+            </div>
+
+            <div class="admin-grid">
+                <!-- User & Admin Role Management Card -->
+                <div class="content-card">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--purple-dark); display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-users"></i> จัดการผู้ใช้งาน & ให้ยศแอดมิน
+                    </h3>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>อีเมล</th>
+                                    <th>ยศ</th>
+                                    <th>เครดิต</th>
+                                    <th>จัดการสิทธิ์</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUserList">
+                                <!-- Admin user rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Add Product & Auto Stock System -->
+                <div class="content-card">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--purple-dark); display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-box-archive"></i> เพิ่มสินค้า & สต็อกส่งอัตโนมัติ
+                    </h3>
+                    <form onsubmit="handleAddProduct(event)">
+                        <div class="form-group">
+                            <label>ชื่อสินค้า / งานบริการ:</label>
+                            <input type="text" id="adminPName" class="form-control" placeholder="เช่น Show Font, Logo, Web Banner" required>
+                        </div>
+                        <div class="form-row" style="display:flex; gap:12px;">
+                            <div class="form-group" style="flex:1;">
+                                <label>ราคา (บาท):</label>
+                                <input type="number" id="adminPPrice" class="form-control" placeholder="189" required>
+                            </div>
+                            <div class="form-group" style="flex:1;">
+                                <label>รูปภาพ (URL):</label>
+                                <input type="text" id="adminPImg" class="form-control" placeholder="https://...">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>รหัสสินค้าส่งอัตโนมัติ (ใส่ 1 รายการ ต่อ 1 บรรทัด):</label>
+                            <textarea id="adminPStock" class="form-control" rows="3" placeholder="KEY-1234-ABCD&#10;KEY-5678-EFGH"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-purple" style="width:100%;">
+                            <i class="fa-solid fa-plus-circle"></i> บันทึกสินค้าเข้าคลัง
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- AUTHENTICATION MODAL (Login / Register) -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 style="font-size: 1.2rem; color: var(--purple-dark);" id="modalTitle">เข้าสู่ระบบ MaewUan Store</h3>
+                <button class="close-btn" onclick="closeAuthModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="tab-switcher">
+                <button class="tab-btn active" id="tabLoginBtn" onclick="switchAuthMode('login')">เข้าสู่ระบบ</button>
+                <button class="tab-btn" id="tabRegisterBtn" onclick="switchAuthMode('register')">สมัครสมาชิก</button>
+            </div>
+
+            <form id="authForm" onsubmit="handleAuthSubmit(event)">
+                <div class="form-group">
+                    <label>อีเมล (Email):</label>
+                    <input type="email" id="authEmail" class="form-control" placeholder="itsuchan12@gmail.com" required>
+                </div>
+                <div class="form-group">
+                    <label>รหัสผ่าน (Password):</label>
+                    <input type="password" id="authPassword" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-pink" style="width: 100%; padding: 12px; margin-top: 10px;" id="authSubmitBtn">
+                    เข้าสู่ระบบ
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- FRONTEND JAVASCRIPT LOGIC -->
+    <script>
+        // --- LOCAL STORAGE DATA STORAGE & INITIAL STATE ---
+        const DEFAULT_ADMIN_EMAIL = "itsuchan12@gmail.com";
+        const DEFAULT_ADMIN_PASS = "@maewuan1512";
+
+        let users = JSON.parse(localStorage.getItem('maewuan_users')) || [
+            { email: DEFAULT_ADMIN_EMAIL, password: DEFAULT_ADMIN_PASS, role: 'admin', credit: 9999 }
+        ];
+
+        let products = JSON.parse(localStorage.getItem('maewuan_products')) || [
+            { id: 1, name: "Block Design", price: 189, stock: ["BLOCK-KEY-8821", "BLOCK-KEY-9932"], img: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80" },
+            { id: 2, name: "Show Font", price: 69, stock: ["FONT-LICENSE-771"], img: "https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=400&q=80" },
+            { id: 3, name: "Logo Commission", price: 59, stock: ["LOGO-Voucher-001"], img: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=400&q=80" },
+            { id: 4, name: "Web Banner", price: 350, stock: ["BANNER-PACK-01"], img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=400&q=80" }
+        ];
+
+        let orders = JSON.parse(localStorage.getItem('maewuan_orders')) || [];
+        let currentUser = JSON.parse(localStorage.getItem('maewuan_current_user')) || null;
+        let authMode = 'login';
+
+        // --- APP INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            saveDataToStorage();
+            updateUserUI();
+            renderProducts();
+        });
+
+        function saveDataToStorage() {
+            localStorage.setItem('maewuan_users', JSON.stringify(users));
+            localStorage.setItem('maewuan_products', JSON.stringify(products));
+            localStorage.setItem('maewuan_orders', JSON.stringify(orders));
+            localStorage.setItem('maewuan_current_user', JSON.stringify(currentUser));
+        }
+
+        // --- NAVIGATION & SIDEBAR LOGIC ---
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+
+            if (tabName === 'shop' || tabName === 'stock' || tabName === 'pricing') {
+                document.getElementById('shopSection').classList.remove('hidden');
+            } else if (tabName === 'topup') {
+                document.getElementById('topupSection').classList.remove('hidden');
+            } else if (tabName === 'history') {
+                document.getElementById('historySection').classList.remove('hidden');
+                renderHistory();
+            } else if (tabName === 'admin') {
+                document.getElementById('adminSection').classList.remove('hidden');
+                renderAdminPanel();
+            }
+
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        }
+
+        // --- RENDER PRODUCTS ---
+        function renderProducts() {
+            const container = document.getElementById('productList');
+            container.innerHTML = '';
+
+            products.forEach(p => {
+                const stockCount = p.stock.length;
+                container.innerHTML += `
+                    <div class="product-card">
+                        <div class="product-img-box">
+                            <img src="${p.img || 'https://via.placeholder.com/300'}" alt="${p.name}">
+                            <span class="badge-stock">คงเหลือ ${stockCount} ชิ้น</span>
+                        </div>
+                        <div class="product-name">${p.name}</div>
+                        <div class="product-desc">รับประกันจัดส่งสินค้าอัตโนมัติเข้าสู่ระบบทันทีหลังชำระเงิน</div>
+                        <div class="product-price-row">
+                            <span class="price-text">${p.price} ฿</span>
+                            <button class="btn btn-pink" onclick="buyProduct(${p.id})" ${stockCount === 0 ? 'disabled style="opacity:0.5;"' : ''}>
+                                ${stockCount > 0 ? 'จำแนก / ซื้อเลย ♡' : 'สินค้าหมด'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- BUY & AUTO DELIVERY SYSTEM ---
+        function buyProduct(productId) {
+            if (!currentUser) {
+                alert('กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ');
+                return openAuthModal();
+            }
+
+            const product = products.find(p => p.id === productId);
+            const user = users.find(u => u.email === currentUser.email);
+
+            if (!product || product.stock.length === 0) {
+                return alert('ขออภัย สินค้านี้หมดสต็อก');
+            }
+
+            if (user.credit < product.price) {
+                return alert('ยอดเงินเครดิตไม่พอ กรุณาเติมเงินก่อนทำรายการ');
+            }
+
+            if (confirm(`ยืนยันการสั่งซื้อ ${product.name} ราคา ${product.price} บาท?`)) {
+                // Deduct Credit
+                user.credit -= product.price;
+                currentUser.credit = user.credit;
+
+                // Deliver Item automatically
+                const deliveredItem = product.stock.shift();
+
+                // Record Order
+                const newOrder = {
+                    email: user.email,
+                    productName: product.name,
+                    price: product.price,
+                    itemData: deliveredItem,
+                    date: new Date().toLocaleString('th-TH')
+                };
+                orders.unshift(newOrder);
+
+                saveDataToStorage();
+                updateUserUI();
+                renderProducts();
+                alert(`สั่งซื้อสำเร็จ! สินค้า/รหัสที่คุณได้รับคือ:\n\n${deliveredItem}`);
+            }
+        }
+
+        // --- SLIP2GO VERIFICATION & TOPUP ---
+        function handleSlipUpload(e) {
+            e.preventDefault();
+            if (!currentUser) {
+                alert('กรุณาเข้าสู่ระบบก่อนเติมเงิน');
+                return openAuthModal();
+            }
+
+            const fileInput = document.getElementById('slipFileInput');
+            if (fileInput.files.length === 0) return alert('กรุณาเลือกไฟล์สลิป');
+
+            // Slip2Go Verification Simulation API Client Integration
+            alert('กำลังส่งสลิปไปตรวจสอบที่ Slip2Go API...');
+            
+            setTimeout(() => {
+                const randomAmount = Math.floor(Math.random() * 200) + 50; // Simulated slip amount
+                const user = users.find(u => u.email === currentUser.email);
+                user.credit += randomAmount;
+                currentUser.credit = user.credit;
+
+                saveDataToStorage();
+                updateUserUI();
+                fileInput.value = '';
+                alert(`✅ ตรวจสอบสลิปผ่าน Slip2Go สำเร็จ!\nเติมเครดิตจำนวน ${randomAmount} บาท เรียบร้อยแล้ว`);
+                switchTab('shop');
+            }, 1200);
+        }
+
+        // --- USER & AUTHENTICATION SYSTEM ---
+        function openAuthModal() {
+            document.getElementById('authModal').classList.add('active');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+        }
+
+        function switchAuthMode(mode) {
+            authMode = mode;
+            if (mode === 'login') {
+                document.getElementById('modalTitle').innerText = 'เข้าสู่ระบบ MaewUan Store';
+                document.getElementById('tabLoginBtn').classList.add('active');
+                document.getElementById('tabRegisterBtn').classList.remove('active');
+                document.getElementById('authSubmitBtn').innerText = 'เข้าสู่ระบบ';
+            } else {
+                document.getElementById('modalTitle').innerText = 'สมัครสมาชิกใหม่';
+                document.getElementById('tabRegisterBtn').classList.add('active');
+                document.getElementById('tabLoginBtn').classList.remove('active');
+                document.getElementById('authSubmitBtn').innerText = 'ยืนยันการสมัคร';
+            }
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value.trim();
+
+            if (authMode === 'login') {
+                const foundUser = users.find(u => u.email === email && u.password === password);
+                if (foundUser) {
+                    currentUser = foundUser;
+                    saveDataToStorage();
+                    updateUserUI();
+                    closeAuthModal();
+                    alert('เข้าสู่ระบบสำเร็จ!');
+                } else {
+                    alert('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+                }
+            } else {
+                // Register Mode
+                if (users.find(u => u.email === email)) {
+                    return alert('อีเมลนี้ถูกใช้งานในระบบแล้ว');
+                }
+                const newUser = { email, password, role: 'member', credit: 0 };
+                users.push(newUser);
+                currentUser = newUser;
+                saveDataToStorage();
+                updateUserUI();
+                closeAuthModal();
+                alert('สมัครสมาชิกสำเร็จ!');
+            }
+        }
+
+        function updateUserUI() {
+            const userBox = document.getElementById('sidebarUserBox');
+            const adminBtn = document.getElementById('adminSidebarBtn');
+
+            if (currentUser) {
+                document.getElementById('displayUserEmail').innerText = currentUser.email;
+                document.getElementById('displayUserRole').innerText = currentUser.role === 'admin' ? '🛡️ แอดมิน (Admin)' : '👤 สมาชิก (Member)';
+                document.getElementById('displayUserCredit').innerText = `฿${currentUser.credit.toFixed(2)}`;
+
+                document.getElementById('authActionBtn').innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ`;
+                document.getElementById('authActionBtn').onclick = logout;
+
+                if (currentUser.role === 'admin') {
+                    adminBtn.classList.remove('hidden');
+                } else {
+                    adminBtn.classList.add('hidden');
+                }
+            } else {
+                document.getElementById('displayUserEmail').innerText = 'ยังไม่ได้เข้าสู่ระบบ';
+                document.getElementById('displayUserRole').innerText = 'Guest User';
+                document.getElementById('displayUserCredit').innerText = '฿0.00';
+                document.getElementById('authActionBtn').innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ`;
+                document.getElementById('authActionBtn').onclick = openAuthModal;
+                adminBtn.classList.add('hidden');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('maewuan_current_user');
+            updateUserUI();
+            switchTab('shop');
+            alert('ออกจากระบบเรียบร้อยแล้ว');
+        }
+
+        // --- HISTORY & ADMIN PANEL ---
+        function renderHistory() {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+
+            if (!currentUser) {
+                return tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">กรุณาเข้าสู่ระบบเพื่อดูประวัติ</td></tr>`;
+            }
+
+            const myOrders = orders.filter(o => o.email === currentUser.email);
+            if (myOrders.length === 0) {
+                return tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">ไม่มีรายการสั่งซื้อ</td></tr>`;
+            }
+
+            myOrders.forEach(o => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${o.productName}</strong></td>
+                        <td>฿${o.price}</td>
+                        <td style="color:var(--purple-dark); font-family:monospace;">${o.itemData}</td>
+                        <td>${o.date}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderAdminPanel() {
+            const userTbody = document.getElementById('adminUserList');
+            userTbody.innerHTML = '';
+
+            users.forEach(u => {
+                userTbody.innerHTML += `
+                    <tr>
+                        <td>${u.email}</td>
+                        <td><span class="badge-role ${u.role === 'admin' ? 'badge-admin' : 'badge-member'}">${u.role}</span></td>
+                        <td>฿${u.credit}</td>
+                        <td>
+                            <button class="btn btn-outline" style="padding:4px 10px; font-size:0.75rem;" onclick="toggleAdminRole('${u.email}')">
+                                ${u.role === 'admin' ? 'ปลดแอดมิน' : 'ให้ยศแอดมิน'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleAdminRole(targetEmail) {
+            const u = users.find(user => user.email === targetEmail);
+            if (u) {
+                u.role = u.role === 'admin' ? 'member' : 'admin';
+                if (currentUser && currentUser.email === u.email) currentUser.role = u.role;
+                saveDataToStorage();
+                renderAdminPanel();
+                updateUserUI();
+            }
+        }
+
+        function handleAddProduct(e) {
+            e.preventDefault();
+            const name = document.getElementById('adminPName').value.trim();
+            const price = parseFloat(document.getElementById('adminPPrice').value);
+            const img = document.getElementById('adminPImg').value.trim();
+            const stockText = document.getElementById('adminPStock').value.trim();
+
+            const stockItems = stockText ? stockText.split('\\n').map(s => s.trim()).filter(s => s) : [];
+
+            const newProduct = {
+                id: Date.now(),
+                name,
+                price,
+                img,
+                stock: stockItems
+            };
+
+            products.push(newProduct);
+            saveDataToStorage();
+            renderProducts();
+            alert('เพิ่มสินค้าและสต็อกเข้าคลังสำเร็จ!');
+            e.target.reset();
+        }
+    </script>
+</body>
+</html>
+"""
+
+# Save index.html
+with open('index.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print("index.html successfully created.")
